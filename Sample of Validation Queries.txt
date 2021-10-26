@@ -1,0 +1,234 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX ecrm: <http://erlangen-crm.org/200717/> 
+PREFIX ctype: <http://cultural-opposition.eu/rdf/courage.owl#>
+
+## Get all the collectors of collections between the specified date range.
+
+SELECT DISTINCT  ?person ?hasCreationDate
+WHERE {
+
+         ?collectorRole  rdf:type ecrm:E87c_Collection_Activity.
+         ?collectorRole  ecrm:P14_carried_out_by  ?person.
+         ?collectorRole  ecrm:P4_has_time-span  ?tspan .
+         ?tspan ecrm:P82a_begin_of_the_begin ?hasCreationDate.
+
+         Filter(?hasCreationDate > "1988-01-01T00:00:00"^^xsd:dateTime  && ?hasCreationDate <  "2003-01-01T00:00:00"^^xsd:dateTime).
+}
+
+##-----------------------------------------------------
+## Get all the creators of a collection's featured items.
+
+SELECT DISTINCT ?person ?GivenName ?FamilyName ?birthDate
+WHERE { 
+	?person rdf:type ecrm:E21_Person.
+	
+	?person ecrm:P131.is_identified_by ?fname.
+	?fname ecrm:P2_has_type ctype:firstName.
+	?fname rdfs:label ?GivenName.
+	
+	?person ecrm:P131.is_identified_by ?lname.
+	?lname ecrm:P2_has_type ctype:lastName.
+	?lname rdfs:label ?FamilyName.
+	
+	?birth ecrm:P98_brought_into_life  ?person.
+	?birth  ecrm:P4_has_time-span  ?birthIRI.
+	?birthIRI  ecrm:P82a_begin_of_the_begin  ?birthDate.
+	?creator ecrm:P14_carried_out_by ?person.
+	?creator ecrm:P108_has_produced ?featured.
+	?part ecrm:P111_added ?featured.
+	?part ecrm:P110_augmented ?collection.
+	Filter( ?collection=<http://courage.btk.mta.hu/courage/individual/n26059>)
+
+}
+
+##-----------------------------------------------------
+## Get all the founders of collections with their names.
+
+SELECT DISTINCT ?group ?titlelabel ?collection ?namelabel
+WHERE { 
+	?group rdf:type ecrm:E74_Group.
+	?group ecrm:P102_has_title ?title.
+	?title rdfs:label ?titlelabel.
+	?founder ecrm:P11.had_participant ?group.
+	?founder ecrm:P92_brought_into_existence ?collection.
+	?collection ecrm:P1_is_identified_by  ?Name.
+	?Name rdfs:label ?namelabel.
+}
+
+##-----------------------------------------------------
+## Get all the collections with their featured items.
+
+SELECT DISTINCT ?collection ?namelabel ?collectionlocationLabel ?featured
+WHERE { 
+	?part ecrm:P111_added ?featured.
+	?part ecrm:P110_augmented ?collection.
+	?collection ecrm:P1_is_identified_by  ?Name.
+	?Name rdfs:label ?namelabel.
+	?collection ecrm:P53_has_former_or_current_location ?collectionlocation.
+	?collectionlocation rdfs:label ?collectionlocationLabel.
+}
+
+##-----------------------------------------------------
+## Get all the leaders of organizations that were founded after 1980.
+
+SELECT DISTINCT ?person ?org 
+WHERE { 
+	?person rdf:type ecrm:E21_Person.
+
+	?join rdf:type ecrm:E85_Joining.
+	?join ecrm:P143_joined ?person.
+	?join ecrm:P144_joined_with ?org.
+
+	?found rdf:type ecrm:E66_Formation.
+	?found ecrm:P95_has_formed ?org.
+	?found ecrm:P4_has_time-span ?time.
+	?time ecrm:P82a_begin_of_the_begin ?date.
+	Filter(?date > "1980-01-01T00:00:00"^^xsd:dateTime ).
+}
+
+##-------------------------------------------------
+## Get all the events that took place at a specific place, with all the participants.
+
+SELECT DISTINCT ?event ?label ?actor ?actorType
+where {
+	?event rdf:type ecrm:E5_Event.
+	?event ecrm:P1_is_identified_by ?name.
+	?name rdfs:label ?label.
+	?event ecrm:P11_had_participant ?actor.
+	?actor rdf:type ?actorType.
+	?event ecrm:P7_took_place_at <http://courage.btk.mta.hu/courage/individual/n1449>.
+}
+
+##-------------------------------------------------
+## Get all the actors that have ownership of a specific collection, with their start and end dates.
+
+SELECT DISTINCT ?actor ?Bdate ?Edate
+where {
+	?Acquisition rdf:type ecrm:E8_Acquisition.
+	?Acquisition ecrm:P22_transferred_title_to ?actor.
+	?Acquisition ecrm:P24_transferred_title_of ?collection.
+	?Acquisition ecrm:P4_has_time-span ?timeTS.
+	?timeTS ecrm:P82a_begin_of_the_begin ?Bdate.
+	?timeTS ecrm:P82b_end_of_the_end ?Edate.
+
+	Filter( ?collection=<http://courage.btk.mta.hu/courage/individual/n2303>)
+}
+
+##-------------------------------------------------
+
+####Checking properties types
+
+ecrm:E21_Person
+    a sh:NodeShape ;
+    sh:targetClass ecrm:E21_Person ; 
+    sh:property [              
+        sh:path ecrm:P131.is_identified_by;       
+        sh:class ecrm:E82_Actor_Appellation ;
+    ] ;
+	sh:property [              
+        sh:path ecrm:P102_has_title;       
+        sh:class ecrm:E35_Title ;
+    ] ;
+	sh:property [             
+        sh:path ecrm:P74_has_current_or_former_residence;       
+        sh:class ecrm:E53_Place ;
+    ] ;
+	sh:property [              
+        sh:path ecrm:P2_has_type;       
+        sh:class ecrm:E55_Type ;
+    ] ;
+	sh:property [              
+        sh:path ecrm:P98i_was_born;
+        sh:class ecrm:E67_Birth ;
+    ] ;
+	sh:property [              
+        sh:path ecrm:P82a_begin_of_the_begin;
+		sh:datatype xsd:datetime
+    ] ;
+    sh:ignoredProperties ( rdf:type owl:topDataProperty owl:topObjectProperty ) ;
+    .
+	
+	
+#####Checking TimeSpan boundries
+
+:PersonShape
+    a sh:NodeShape ;
+    sh:targetClass :E52_Time-Span ;
+
+    sh:property [              
+        sh:path ecrm:P82a_begin_of_the_begin ;       
+        sh:datatype xsd:dateTime ;
+        sh:lessThan ecrm:P82b_end_of_the_end;
+    ] ;
+   
+    sh:ignoredProperties ( rdf:type owl:topDataProperty owl:topObjectProperty ex:ssn ex:beathDate) ;
+    .
+	
+#####Checking if Birthdate > creationDate
+
+:E21_Person rdf:type sh:NodeShape ; 
+  rdfs:label "E21 Person"@en ;
+
+  <http://www.w3.org/2004/02/skos/core#notation> "E21" ;
+  sh:sparql [
+      sh:message "birthDate comes after createDate" ;
+      sh:prefixes <http://courage.btk.mta.hu/courage/individual> ;
+      sh:select """prefix ecrm: <http://erlangen-crm.org/200717/> SELECT DISTINCT $this ?birthDate ?createDate
+            WHERE {
+                $this ecrm:P98i_was_born       ?birth.
+				?birth       ecrm:P4_has_time-span       ?birthIRI.
+				?birthIRI       ecrm:P82a_begin_of_the_begin       ?birthDate .
+				
+				$this       ecrm:P14i_performed       ?performed.
+				?performed       ecrm:P4_has_time-span       ?endIRI.
+				?endIRI       ecrm:P82a_begin_of_the_begin       ?createDate .
+				FILTER  (?createDate < ?birthDate ).
+            }""" ;
+    ] ;
+.
+
+#####Checking duplicated person
+
+:E21_Person
+  rdf:type sh:NodeShape ;
+  rdfs:label "E39 Actor"@en ;
+  skos:notation "E39" ;
+  sh:sparql [
+      sh:message "Duplicated person entities" ;
+      sh:prefixes : ;
+      sh:select """prefix ecrm: <http://erlangen-crm.org/200717/> 
+					SELECT $this
+					WHERE {
+					   $this rdf:type ecrm:E21_Person.
+					}
+					GROUP BY $this
+					HAVING (COUNT(*)>1)""" ;
+    ] ;
+.
+
+
+#####Checking duplicated Places
+
+:E53_Place
+  rdf:type sh:NodeShape ;
+  rdfs:label "E53 Place"@en ;
+  skos:notation "E53" ;
+  sh:sparql [
+      sh:message "Same place with different links" ;
+      sh:prefixes : ;
+      sh:select """prefix ecrm: <http://erlangen-crm.org/200717/> 
+				SELECT $this
+				WHERE {
+					  $this rdf:type ecrm:E53_Place.
+				   $this rdfs:label ?label1.
+				   ?place2 rdf:type ecrm:E53_Place.
+				   ?place2 rdfs:label ?label2.
+
+				FILTER($this != ?place2)
+				FILTER(?label1 = ?label2)
+}""" ;
+    ] ;
+.
