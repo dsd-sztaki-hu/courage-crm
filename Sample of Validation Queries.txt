@@ -5,6 +5,9 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX ecrm: <http://erlangen-crm.org/200717/> 
 PREFIX ctype: <http://cultural-opposition.eu/rdf/courage.owl#>
 
+Fuseki URL as a SPARQL endpoint to test the mapped data: http://cultural-opposition.eu:3030/dataset.html?tab=upload&ds=/courage
+
+
 ## Get all the collectors of collections between the specified date range.
 
 SELECT DISTINCT  ?person ?hasCreationDate
