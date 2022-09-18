@@ -1,0 +1,89 @@
+####Checking properties types
+
+ecrm:E21_Person
+    a sh:NodeShape ;
+    sh:targetClass ecrm:E21_Person ;
+    sh:property [
+        sh:path ecrm:P1_is_identified_by;
+        sh:class ecrm:E41_Appellation ;
+    ] ;
+	sh:property [
+        sh:path ecrm:P102_has_title;
+        sh:class ecrm:E35_Title ;
+    ] ;
+	sh:property [
+        sh:path ecrm:P74_has_current_or_former_residence;
+        sh:class ecrm:E53_Place ;
+    ] ;
+	sh:property [
+        sh:path ecrm:P2_has_type;
+        sh:class ecrm:E55_Type ;
+    ] ;
+	sh:property [
+        sh:path ecrm:P98i_was_born;
+        sh:class ecrm:E67_Birth ;
+    ] ;
+	sh:property [
+        sh:path ecrm:P82a_begin_of_the_begin;
+		sh:datatype xsd:datetime
+    ] ;
+    sh:ignoredProperties ( rdf:type owl:topDataProperty owl:topObjectProperty ) ;
+    .
+
+#####Checking TimeSpan boundaries
+
+:PersonShape
+    a sh:NodeShape ;
+    sh:targetClass :E52_Time-Span ;
+
+    sh:property [
+        sh:path ecrm:P82a_begin_of_the_begin ;
+        sh:datatype xsd:dateTime ;
+        sh:lessThan ecrm:P82b_end_of_the_end;
+    ] ;
+
+    sh:ignoredProperties ( rdf:type owl:topDataProperty owl:topObjectProperty ex:ssn ex:beathDate) ;
+    .
+
+#####Checking if birthdate > creationDate
+
+:E21_Person rdf:type sh:NodeShape ;
+  rdfs:label "E21 Person"@en ;
+
+  <http://www.w3.org/2004/02/skos/core#notation> "E21" ;
+  sh:sparql [
+      sh:message "birthDate comes after createDate" ;
+      sh:prefixes <http://courage.btk.mta.hu/courage/individual> ;
+      sh:select """prefix ecrm: <http://erlangen-crm.org/211015/> SELECT DISTINCT $this ?birthDate ?createDate
+            WHERE {
+                $this ecrm:P98i_was_born       ?birth.
+				?birth       ecrm:P4_has_time-span       ?birthIRI.
+				?birthIRI       ecrm:P82a_begin_of_the_begin       ?birthDate .
+
+				$this       ecrm:P14i_performed       ?performed.
+				?performed       ecrm:P4_has_time-span       ?endIRI.
+				?endIRI       ecrm:P82a_begin_of_the_begin       ?createDate .
+				FILTER  (?createDate < ?birthDate ).
+            }""" ;
+    ] ;
+.
+
+
+#####Checking duplicate persons
+
+:E21_Person
+  rdf:type sh:NodeShape ;
+  rdfs:label "E39 Actor"@en ;
+  skos:notation "E39" ;
+  sh:sparql [
+      sh:message "Duplicated person entities" ;
+      sh:prefixes : ;
+      sh:select """prefix ecrm: <http://erlangen-crm.org/211015/>
+					SELECT $this
+					WHERE {
+					   $this rdf:type ecrm:E21_Person.
+					}
+					GROUP BY $this
+					HAVING (COUNT(*)>1)""" ;
+    ] ;
+.
