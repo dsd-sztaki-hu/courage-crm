@@ -3,7 +3,7 @@
 The COURAGE project includes historic data concerning people, organizations, cultural heritage collections, and collection items covering the period between 1950 and 1990 (http://cultural-opposition.eu/). This repository contains the results of translating the COURAGE dataset to CIDOC-CRM semantically. In addition, we provide samples for validating the converted dataset using SPARQL and SHACL.
 
 Please cite this paper when referring to these results:
-> Faraj, G. and Micsik, A. 2021. Representing and Validating Cultural Heritage Knowledge Graphs in CIDOC-CRM Ontology. FUTURE INTERNET 13, 11. DOI:10.3390/fi13110277
+> Faraj, G. and Micsik, A. 2021. Representing and Validating Cultural Heritage Knowledge Graphs in CIDOC-CRM Ontology. FUTURE INTERNET 13, 11. https://doi.org/10.3390/fi13110277
 
 ```
 @article{MTMT:32501516,
